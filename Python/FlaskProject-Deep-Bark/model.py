@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
 
-# CNN 모델 정의 (Hammer, Nipper 분류)
+# CNN 모델 정의
 class CustomCNN(nn.Module):
     def __init__(self, num_classes=2):
         super(CustomCNN, self).__init__()
@@ -24,10 +23,10 @@ class CustomCNN(nn.Module):
 
 import torchvision.models as models
 # 모델 로드 함수 (ResNet50 기반 전이 학습 모델)
-def load_model(model_path="model/모델 탑재"):
+def load_model(model_path="model/resnet50_multilabel2222.pth"):
     model = models.resnet50(pretrained=False)
     num_ftrs = model.fc.in_features
-    model.fc = nn.Linear(num_ftrs, 2)  # Hammer / Nipper 분류 (2개 클래스)
+    model.fc = nn.Linear(num_ftrs, 62)  # Hammer / Nipper 분류 (2개 클래스)
     model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     model.eval()
     return model

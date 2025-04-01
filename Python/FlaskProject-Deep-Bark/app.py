@@ -1,4 +1,3 @@
-import os
 import torch
 import torchvision.transforms as transforms
 from flask import Flask, request, jsonify, render_template
@@ -13,7 +12,7 @@ app.config["UPLOAD_FOLDER"] = "static/uploads"
 model = load_model()
 
 # 클래스 이름
-class_names = ["Hammer", "Nipper"]
+class_names = ["클래스 이름 적기"]
 
 # 이미지 전처리 함수
 def transform_image(image):
