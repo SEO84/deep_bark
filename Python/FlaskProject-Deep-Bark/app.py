@@ -8,18 +8,61 @@ from model import load_model
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"] = "static/uploads"
 
-
 model = load_model()
 
 # 클래스 이름
-class_names = ["클래스 이름 적기"]
+class_names = ["Jindo Dog",
+               "Border Collie",
+               "Chihuahua",
+               "Shih Tzu",
+               "Maltese",
+               "Cavalier King Charles Spaniel",
+               "Dachshund",
+               "Cocker Spaniel",
+               "Golden Retriever",
+               "Pembroke Welsh Corgi",
+               "Pomeranian",
+               "Siberian Husky",
+               "Toy Poodle",
+               "Standard Poodle",
+               "Yorkshire Terrier",
+               "Bichon Frise",
+               "Beagle",
+               "Shiba Inu",
+               "Malamute",
+               "Chow Chow",
+               "Doberman",
+               "French Bulldog",
+               "German Shepherd",
+               "Italian Greyhound",
+               "Miniature Schnauzer",
+               "Papillon",
+               "Pekingese",
+               "Pug",
+               "Samoyed",
+               "West Highland White Terrier",
+               "Maltipoo",
+               "Yorkipoo",
+               "Cavachon",
+               "Bordercorgi",
+               "Poochon",
+               "Cockapoo",
+               "Malshi",
+               "Chiweenie",
+               "Malky",
+               "Pomsky",
+               "Golden Doodle",
+               "Cavoodle",
+               "Jindo Corgi"
+               ]
+
 
 # 이미지 전처리 함수
 def transform_image(image):
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
-		transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
     return transform(image).unsqueeze(0)  # 배치 차원 추가
 
@@ -28,6 +71,7 @@ def transform_image(image):
 @app.route("/")
 def index():
     return render_template("index.html")
+
 
 # 이미지 업로드 및 분류 API
 @app.route("/classify", methods=["POST"])
@@ -54,6 +98,7 @@ def classify_image():
         "confidence": round(confidence * 100, 2),
     }
     return jsonify(response_data)
+
 
 # Flask 서버 실행
 if __name__ == "__main__":
