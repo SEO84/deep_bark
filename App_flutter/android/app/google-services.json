@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "339865363997",
+    "project_id": "deep-bark",
+    "storage_bucket": "deep-bark.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:339865363997:android:8e622e0ee18eacd8a388f4",
+        "android_client_info": {
+          "package_name": "com.example.app_flutter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "339865363997-jqadn051i6o78iugdh4n0tmonnrhao8d.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.app_flutter",
+            "certificate_hash": "391b3b16e86cf9198bd4df638b745e0d28aa482f"
+          }
+        },
+        {
+          "client_id": "339865363997-caf5bks4sl51vtma6koq4a9goigutesn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0rFFWc156-v-69EEBhr0yFzBJ44wvX9U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "339865363997-caf5bks4sl51vtma6koq4a9goigutesn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
