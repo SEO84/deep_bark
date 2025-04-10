@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_web_client_id" translatable="false">339865363997-caf5bks4sl51vtma6koq4a9goigutesn.apps.googleusercontent.com</string>
+    <string name="gcm_defaultSenderId" translatable="false">339865363997</string>
+    <string name="google_api_key" translatable="false">AIzaSyC0rFFWc156-v-69EEBhr0yFzBJ44wvX9U</string>
+    <string name="google_app_id" translatable="false">1:339865363997:android:8e622e0ee18eacd8a388f4</string>
+    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyC0rFFWc156-v-69EEBhr0yFzBJ44wvX9U</string>
+    <string name="google_storage_bucket" translatable="false">deep-bark.firebasestorage.app</string>
+    <string name="project_id" translatable="false">deep-bark</string>
+    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        
+        <item name="android:windowBackground">@drawable/launch_background</item>
+    </style>
+    <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">?android:colorBackground</item>
+    </style>
+</resources>
