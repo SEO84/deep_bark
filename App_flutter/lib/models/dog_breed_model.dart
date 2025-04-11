@@ -1,34 +1,41 @@
+import 'lat_lng.dart';
+
 class DogBreed {
   final String id;
   final String name;
-  final String origin;
-  final String description;
+  final String nameEn;
+  final String nameKo;
+  final String? origin;
+  final String? description;
   final String? imageUrl;
   final String? size;
   final String? weight;
   final String? lifespan;
   final String? temperament;
+  final double? confidence;
   final LatLng? originLatLng;
-  final double? confidence; // 신뢰도 필드 추가
 
-  DogBreed({
+  const DogBreed({
     required this.id,
     required this.name,
-    required this.origin,
-    required this.description,
+    required this.nameEn,
+    required this.nameKo,
+    this.origin,
+    this.description,
     this.imageUrl,
     this.size,
     this.weight,
     this.lifespan,
     this.temperament,
+    this.confidence,
     this.originLatLng,
-    this.confidence, // 생성자에 추가
   });
 
-  // copyWith 메서드 수정
   DogBreed copyWith({
     String? id,
     String? name,
+    String? nameEn,
+    String? nameKo,
     String? origin,
     String? description,
     String? imageUrl,
@@ -36,12 +43,14 @@ class DogBreed {
     String? weight,
     String? lifespan,
     String? temperament,
+    double? confidence,
     LatLng? originLatLng,
-    double? confidence, // copyWith에 추가
   }) {
     return DogBreed(
       id: id ?? this.id,
       name: name ?? this.name,
+      nameEn: nameEn ?? this.nameEn,
+      nameKo: nameKo ?? this.nameKo,
       origin: origin ?? this.origin,
       description: description ?? this.description,
       imageUrl: imageUrl ?? this.imageUrl,
@@ -49,8 +58,48 @@ class DogBreed {
       weight: weight ?? this.weight,
       lifespan: lifespan ?? this.lifespan,
       temperament: temperament ?? this.temperament,
+      confidence: confidence ?? this.confidence,
       originLatLng: originLatLng ?? this.originLatLng,
-      confidence: confidence ?? this.confidence, // 반환에 추가
+    );
+  }
+}
+
+class MixDog {
+  final String id;
+  final String nameEn;
+  final String nameKo;
+  final String breed1;
+  final String breed2;
+  final String? imageUrl;
+  final double? confidence;
+
+  MixDog({
+    required this.id,
+    required this.nameEn,
+    required this.nameKo,
+    required this.breed1,
+    required this.breed2,
+    this.imageUrl,
+    this.confidence,
+  });
+
+  MixDog copyWith({
+    String? id,
+    String? nameEn,
+    String? nameKo,
+    String? breed1,
+    String? breed2,
+    String? imageUrl,
+    double? confidence,
+  }) {
+    return MixDog(
+      id: id ?? this.id,
+      nameEn: nameEn ?? this.nameEn,
+      nameKo: nameKo ?? this.nameKo,
+      breed1: breed1 ?? this.breed1,
+      breed2: breed2 ?? this.breed2,
+      imageUrl: imageUrl ?? this.imageUrl,
+      confidence: confidence ?? this.confidence,
     );
   }
 }

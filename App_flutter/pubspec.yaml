@@ -54,6 +54,7 @@ dependencies:
   google_maps_custom_marker: ^1.0.3
   path_provider: ^2.1.2
   crypto: ^3.0.3
+  sqflite: ^2.3.0
 
 dev_dependencies:
   flutter_test:
@@ -80,6 +81,7 @@ flutter:
   assets:
     - assets/images/
     - assets/i18n/
+    - assets/data/breed_name_mapping.json
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "dog_breeds")
+@Table(name = "pure_dogs")
 @Getter
 @Setter
 public class DogBreed {
@@ -14,19 +14,14 @@ public class DogBreed {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String name;
+    @Column(name = "name_en", nullable = false)
+    private String nameEn;
 
-    @Column(length = 1000)
-    private String description;
-
-    private String imageUrl;
-
-    @Column(length = 1000)
-    private String characteristics;
+    @Column(name = "name_ko", nullable = false)
+    private String nameKo;
 
     private String size;
-    private String temperament;
-    private String lifeSpan;
+    private String weight;
+    private String lifespan;
     private String origin;
 } 

@@ -8,14 +8,14 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface DogBreedRepository extends JpaRepository<DogBreed, Long> {
-    List<DogBreed> findByNameContainingIgnoreCase(String name);
+    List<DogBreed> findByNameEnContainingIgnoreCase(String name);
+    List<DogBreed> findByNameKoContainingIgnoreCase(String name);
     
     @Query("SELECT d FROM DogBreed d WHERE " +
-           "LOWER(d.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-           "LOWER(d.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-           "LOWER(d.characteristics) LIKE LOWER(CONCAT('%', :keyword, '%'))")
+           "LOWER(d.nameEn) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(d.nameKo) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<DogBreed> searchBreeds(@Param("keyword") String keyword);
     
     List<DogBreed> findBySize(String size);
-    List<DogBreed> findByTemperament(String temperament);
+    List<DogBreed> findByOrigin(String origin);
 } 

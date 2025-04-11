@@ -10,19 +10,25 @@ import '../services/app_localizations.dart';
 import 'package:provider/provider.dart';
 import '../services/locale_provider.dart';
 import 'package:google_maps_custom_marker/google_maps_custom_marker.dart';
+import '../models/mix_dog.dart';
+import 'dart:convert';
+import 'package:flutter/services.dart';
 
 class DogEncyclopediaScreen extends StatefulWidget {
+  const DogEncyclopediaScreen({super.key});
+
   @override
-  _DogEncyclopediaScreenState createState() => _DogEncyclopediaScreenState();
+  State<DogEncyclopediaScreen> createState() => _DogEncyclopediaScreenState();
 }
 
 class _DogEncyclopediaScreenState extends State<DogEncyclopediaScreen>
     with SingleTickerProviderStateMixin {
   final DogBreedService _breedService = DogBreedService();
-  List<models.DogBreed> _breeds = [];
-  List<models.DogBreed> _filteredBreeds = [];
+  List<dynamic> _breeds = [];
+  List<dynamic> _filteredBreeds = [];
   bool _isLoading = true;
-  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  Map<String, String>? _breedNameMapping;
   late TabController _tabController;
 
   GoogleMapController? _mapController;
@@ -33,6 +39,7 @@ class _DogEncyclopediaScreenState extends State<DogEncyclopediaScreen>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(_handleTabChange);
+    _loadBreedNameMapping();
     _loadBreeds();
   }
 
@@ -41,7 +48,6 @@ class _DogEncyclopediaScreenState extends State<DogEncyclopediaScreen>
     _tabController.removeListener(_handleTabChange);
     _tabController.dispose();
     _mapController?.dispose();
-    _searchController.dispose();
     super.dispose();
   }
 
@@ -51,55 +57,40 @@ class _DogEncyclopediaScreenState extends State<DogEncyclopediaScreen>
     }
   }
 
-  Future<void> _loadBreeds() async {
+  Future<void> _loadBreedNameMapping() async {
     try {
-      final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
-      final languageCode = localeProvider.locale.languageCode;
-
-      final breeds = await _breedService.getAllBreeds(languageCode);
-
-      List<models.DogBreed> updatedBreeds = [];
-      for (var breed in breeds) {
-        if (breed.originLatLng == null) {
-          try {
-            final locations = await locationFromAddress(breed.origin);
-            if (locations.isNotEmpty) {
-              final location = locations.first;
-              final latLng = models.LatLng(
-                  latitude: location.latitude,
-                  longitude: location.longitude
-              );
-              updatedBreeds.add(breed.copyWith(originLatLng: latLng));
-            } else {
-              updatedBreeds.add(breed);
-            }
-          } catch (e) {
-            print('지오코딩 오류: ${e.toString()}');
-            updatedBreeds.add(breed);
-          }
-        } else {
-          updatedBreeds.add(breed);
-        }
-      }
-
+      final String jsonString = await rootBundle.loadString('assets/data/breed_name_mapping.json');
+      final Map<String, dynamic> jsonData = json.decode(jsonString);
       setState(() {
-        _breeds = updatedBreeds;
-        _filteredBreeds = updatedBreeds;
+        _breedNameMapping = Map<String, String>.from(jsonData['mapping']);
       });
+    } catch (e) {
+      print('견종 이름 매핑 파일 로드 오류: $e');
+    }
+  }
 
-      _setupMarkers().then((_) => setState(() {
+  Future<void> _loadBreeds() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final languageCode = Provider.of<LocaleProvider>(context, listen: false).locale.languageCode;
+      final breeds = await _breedService.getAllBreeds(languageCode);
+      setState(() {
+        _breeds = breeds;
+        _filteredBreeds = breeds;
         _isLoading = false;
-      }));
+      });
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
-      final localizations = AppLocalizations.of(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(
-            localizations.translate('failed_to_load_breeds') +
-                ': ${e.toString()}')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('견종 데이터를 불러오는데 실패했습니다: $e')),
+        );
+      }
     }
   }
 
@@ -114,7 +105,7 @@ class _DogEncyclopediaScreenState extends State<DogEncyclopediaScreen>
               breed.originLatLng!.longitude
           ),
           infoWindow: InfoWindow(
-            title: breed.name,
+            title: _getBreedName(breed),
             snippet: breed.origin,
             onTap: () {
               Navigator.pushNamed(
@@ -134,28 +125,45 @@ class _DogEncyclopediaScreenState extends State<DogEncyclopediaScreen>
     }
   }
 
-
   void _filterBreeds(String query) {
     setState(() {
+      _searchQuery = query;
       if (query.isEmpty) {
         _filteredBreeds = _breeds;
       } else {
+        final languageCode = Provider.of<LocaleProvider>(context, listen: false).locale.languageCode;
         _filteredBreeds = _breeds.where((breed) {
-          return breed.name.toLowerCase().contains(query.toLowerCase()) ||
-              breed.origin.toLowerCase().contains(query.toLowerCase());
+          if (breed is models.DogBreed) {
+            final name = languageCode == 'en' ? breed.nameEn : breed.nameKo;
+            return name.toLowerCase().contains(query.toLowerCase());
+          } else if (breed is MixDog) {
+            final name = languageCode == 'en' ? breed.nameEn : breed.nameKo;
+            return name.toLowerCase().contains(query.toLowerCase());
+          }
+          return false;
         }).toList();
       }
-      _setupMarkers().then((_) => setState(() {}));
     });
+  }
+
+  String _getBreedName(dynamic breed) {
+    final languageCode = Provider.of<LocaleProvider>(context, listen: false).locale.languageCode;
+    if (breed is models.DogBreed) {
+      return languageCode == 'en' ? breed.nameEn : breed.nameKo;
+    } else if (breed is MixDog) {
+      return languageCode == 'en' ? breed.nameEn : breed.nameKo;
+    }
+    return '';
   }
 
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
+    final languageCode = Provider.of<LocaleProvider>(context, listen: false).locale.languageCode;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(localizations.translate('dog_encyclopedia')),
+        title: Text(languageCode == 'en' ? 'Dog Encyclopedia' : '견종 백과'),
         automaticallyImplyLeading: false,
         bottom: TabBar(
           controller: _tabController,
@@ -172,16 +180,14 @@ class _DogEncyclopediaScreenState extends State<DogEncyclopediaScreen>
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(8.0),
             child: TextField(
-              controller: _searchController,
               decoration: InputDecoration(
-                hintText: localizations.translate('search_breed_or_origin'),
-                prefixIcon: Icon(Icons.search),
+                hintText: languageCode == 'en' ? 'Search breeds...' : '견종 검색...',
+                prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                contentPadding: EdgeInsets.symmetric(vertical: 0),
               ),
               onChanged: _filterBreeds,
             ),
@@ -192,65 +198,121 @@ class _DogEncyclopediaScreenState extends State<DogEncyclopediaScreen>
               physics: NeverScrollableScrollPhysics(),
               children: [
                 _isLoading
-                    ? Center(child: CircularProgressIndicator())
-                    : _filteredBreeds.isEmpty
-                    ? Center(child: Text(localizations.translate('no_search_results')))
-                    : ListView.builder(
-                  itemCount: _filteredBreeds.length,
-                  itemBuilder: (context, index) {
-                    final breed = _filteredBreeds[index];
-                    return ListTile(
-                      leading: breed.imageUrl != null
-                          ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          breed.imageUrl!,
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              width: 50,
-                              height: 50,
-                              color: Colors.grey[300],
-                              child: Icon(Icons.pets, color: Colors.grey[600]),
-                            );
-                          },
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 16),
+                            Text(
+                              localizations.translate('loading_breeds'),
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
                         ),
                       )
-                          : Container(
-                        width: 50,
-                        height: 50,
-                        color: Colors.grey[300],
-                        child: Icon(Icons.pets, color: Colors.grey[600]),
-                      ),
-                      title: Text(breed.name),
-                      subtitle: Text('${localizations.translate('origin')}: ${breed.origin}'),
-                      onTap: () {
-                        Navigator.pushNamed(
-                          context,
-                          '/breed_detail',
-                          arguments: {'breed': breed},
-                        );
-                      },
-                    );
-                  },
-                ),
+                    : _filteredBreeds.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.search_off, size: 64, color: Colors.grey),
+                                SizedBox(height: 16),
+                                Text(
+                                  localizations.translate('no_search_results'),
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: _loadBreeds,
+                            child: ListView.builder(
+                              itemCount: _filteredBreeds.length,
+                              itemBuilder: (context, index) {
+                                final breed = _filteredBreeds[index];
+                                return Card(
+                                  margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  child: ListTile(
+                                    contentPadding: EdgeInsets.all(8),
+                                    leading: breed.imageUrl != null
+                                        ? ClipRRect(
+                                            borderRadius: BorderRadius.circular(8),
+                                            child: Image.network(
+                                              breed.imageUrl!,
+                                              width: 60,
+                                              height: 60,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error, stackTrace) {
+                                                return Container(
+                                                  width: 60,
+                                                  height: 60,
+                                                  color: Colors.grey[300],
+                                                  child: Icon(Icons.pets, color: Colors.grey[600]),
+                                                );
+                                              },
+                                            ),
+                                          )
+                                        : Container(
+                                            width: 60,
+                                            height: 60,
+                                            color: Colors.grey[300],
+                                            child: Icon(Icons.pets, color: Colors.grey[600]),
+                                          ),
+                                    title: Text(
+                                      _getBreedName(breed),
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('${localizations.translate('origin')}: ${breed.origin}'),
+                                        if (breed.size != null)
+                                          Text('${localizations.translate('size')}: ${breed.size}'),
+                                      ],
+                                    ),
+                                    trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                                    onTap: () {
+                                      Navigator.pushNamed(
+                                        context,
+                                        '/breed_detail',
+                                        arguments: {'breed': breed},
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
                 _isLoading
-                    ? Center(child: CircularProgressIndicator())
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(),
+                            SizedBox(height: 16),
+                            Text(
+                              localizations.translate('loading_map'),
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      )
                     : GoogleMap(
-                  initialCameraPosition: CameraPosition(
-                    target: LatLng(30, 0),
-                    zoom: 2,
-                  ),
-                  markers: _markers,
-                  onMapCreated: (controller) {
-                    _mapController = controller;
-                  },
-                  gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
-                    Factory<EagerGestureRecognizer>(() => EagerGestureRecognizer()),
-                  },
-                ),
+                        initialCameraPosition: CameraPosition(
+                          target: LatLng(30, 0),
+                          zoom: 2,
+                        ),
+                        markers: _markers,
+                        onMapCreated: (controller) {
+                          _mapController = controller;
+                        },
+                        gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                          Factory<OneSequenceGestureRecognizer>(
+                            () => EagerGestureRecognizer(),
+                          ),
+                        }.toSet(),
+                      ),
               ],
             ),
           ),
