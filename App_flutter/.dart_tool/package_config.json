@@ -296,6 +296,12 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "google_maps_custom_marker",
+      "rootUri": "file:///C:/Users/it/AppData/Local/Pub/Cache/hosted/pub.dev/google_maps_custom_marker-1.0.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
       "name": "google_maps_flutter",
       "rootUri": "file:///C:/Users/it/AppData/Local/Pub/Cache/hosted/pub.dev/google_maps_flutter-2.12.1",
       "packageUri": "lib/",
@@ -830,7 +836,7 @@
       "languageVersion": "3.7"
     }
   ],
-  "generated": "2025-04-10T00:50:18.642963Z",
+  "generated": "2025-04-10T08:33:27.513861Z",
   "generator": "pub",
   "generatorVersion": "3.7.2",
   "flutterRoot": "file:///C:/Users/it/Documents/flutter",

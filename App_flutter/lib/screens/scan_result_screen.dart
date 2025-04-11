@@ -11,7 +11,7 @@ class ScanResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Map<String, dynamic> args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    final List<DogBreed> results = args['results'];
+    final List<dynamic> results = args['results'];
     final String imagePath = args['imagePath'];
     final localizations = AppLocalizations.of(context);
 
@@ -62,7 +62,7 @@ class ScanResultScreen extends StatelessWidget {
 
               ...List.generate(
                 results.length,
-                    (index) => _buildResultItem(context, results[index], index),
+                (index) => _buildResultItem(context, results[index], index),
               ),
 
               SizedBox(height: 24),
@@ -73,14 +73,17 @@ class ScanResultScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildResultItem(BuildContext context, DogBreed breed, int index) {
+  Widget _buildResultItem(BuildContext context, dynamic result, int index) {
     final localizations = AppLocalizations.of(context);
+    final bool isMixDog = result is MixDog;
+    final String breedName = isMixDog ? result.nameKo : result.nameKo;
+    
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(
           context,
           '/breed_detail',
-          arguments: {'breed': breed},
+          arguments: {'breed': result},
         );
       },
       child: Card(
@@ -98,8 +101,8 @@ class ScanResultScreen extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 30,
-                    backgroundImage: breed.imageUrl != null
-                        ? CachedNetworkImageProvider(breed.imageUrl!)
+                    backgroundImage: result.imageUrl != null
+                        ? CachedNetworkImageProvider(result.imageUrl!)
                         : AssetImage('assets/images/dog_placeholder.png') as ImageProvider,
                   ),
                   SizedBox(width: 16),
@@ -108,19 +111,26 @@ class ScanResultScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${index + 1}. ${breed.name}',
+                          '${index + 1}. ${breedName}',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
                           ),
-                        )
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          '이 강아지는 ${breedName}입니다.',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ],
               ),
               SizedBox(height: 12),
-              // 신뢰도 표시 바
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -132,7 +142,7 @@ class ScanResultScreen extends StatelessWidget {
                         style: TextStyle(fontWeight: FontWeight.w500),
                       ),
                       Text(
-                        '${breed.confidence?.toStringAsFixed(1) ?? 0}%',
+                        '${result.confidence?.toStringAsFixed(1) ?? 0}%',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.orange,
@@ -144,11 +154,11 @@ class ScanResultScreen extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: LinearProgressIndicator(
-                      value: (breed.confidence ?? 0) / 100,
+                      value: (result.confidence ?? 0) / 100,
                       minHeight: 10,
                       backgroundColor: Colors.grey[300],
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        _getConfidenceColor(breed.confidence ?? 0),
+                        _getConfidenceColor(result.confidence ?? 0),
                       ),
                     ),
                   ),
@@ -161,7 +171,6 @@ class ScanResultScreen extends StatelessWidget {
     );
   }
 
-  // 신뢰도에 따른 색상 반환
   Color _getConfidenceColor(double confidence) {
     if (confidence >= 80) {
       return Colors.green;
